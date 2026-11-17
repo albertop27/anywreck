@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+.env*
+*.log
+
+# all results, renders and videos are regenerable
+out/
+
+*.blend
+*.blend1
+*.glb
+*.mp4
+*.fbx
+*.sim

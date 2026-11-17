@@ -1,0 +1,12 @@
+{
+ "object": "welded steel gas cylinder with foot ring, collar and brass valve",
+ "understanding": [
+  "A pressure vessel: the wall is several millimetres thick and the domed ends are stiffer still. It takes real violence to dent one, and it never crumples like a drum. The thin parts are the foot ring and the collar, which bend readily.",
+  "Hurt by being dropped, falling over, and being struck by vehicles: one or two shallow, smooth dents, a bent foot ring, a knocked collar.",
+  "Paint chips at the shoulder and foot ring; rust rings at the base where it stands in water and round the weld seams."
+ ],
+ "material": "heavy",
+ "hits": {"dent": 1.0, "crush": 0.5, "axial": 0.0, "bend": 0.6},
+ "depth": 0.9,
+ "wear": {"rust": 0.9, "patch": 0.4, "crevice": 0.9, "ground": 1.0, "pooling": 0.5, "crease": 0.7, "scrape": 0.7, "edge_wear": 0.9, "grime": 0.5}
+}

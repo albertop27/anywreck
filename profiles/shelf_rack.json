@@ -1,0 +1,12 @@
+{
+ "object": "steel storage rack: four slotted-angle uprights, shelves, loaded with cans, hoses, valves and boxes",
+ "understanding": [
+  "An open frame of thin members, not a shell. Real damage is uprights buckling, shelves sagging, the rack leaning, and the loose items falling off: rigid parts moving, not sheet denting.",
+  "This is outside what the current sheet method models; it is here to show where it stops.",
+  "Rust on the uprights at the feet and at every slot edge."
+ ],
+ "material": "sheet",
+ "hits": {"dent": 1.0, "crush": 0.6, "axial": 0.3, "bend": 0.4},
+ "depth": 0.8,
+ "wear": {"rust": 0.9, "patch": 0.5, "crevice": 0.6, "ground": 1.0, "pooling": 0.4, "crease": 0.7, "scrape": 0.5, "edge_wear": 0.8, "grime": 0.6}
+}

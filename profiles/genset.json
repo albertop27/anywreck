@@ -1,0 +1,12 @@
+{
+ "object": "skid-mounted diesel generator: cast engine block, alternator, radiator, sheet control cabinet, exhaust silencer",
+ "understanding": [
+  "Mostly castings and thick steel: the engine, alternator and skid do not deform in any event short of an explosion. Only the sheet parts move: control cabinet, radiator shroud, silencer shell, guards.",
+  "So wreckage here is shallow dents in the sheet parts, bent pipes, and above all surface: heat rust on the exhaust, oil and soot, flaking paint.",
+  "Rust is heavy on the silencer and manifold, at the skid, and wherever water pools on top; grime is everywhere."
+ ],
+ "material": "heavy",
+ "hits": {"dent": 1.0, "crush": 0.2, "axial": 0.5, "bend": 0.0},
+ "depth": 0.6,
+ "wear": {"rust": 0.9, "patch": 0.6, "crevice": 0.8, "ground": 0.9, "pooling": 0.8, "crease": 0.6, "scrape": 0.5, "edge_wear": 0.6, "grime": 1.0}
+}

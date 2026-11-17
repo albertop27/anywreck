@@ -1,0 +1,12 @@
+{
+ "object": "steel workshop tool cart: sheet body with drawers, on castors",
+ "understanding": [
+  "Sheet-steel box stiffened by its drawer fronts; side and back panels dent, the top tray edge bends, the castors and handle stay as they are.",
+  "Hurt by rolling into things, tools dropped on the top, being tipped over. Rarely crushed.",
+  "Enamel chips on drawer edges and corners; rust in the chips, at the base, and under the top tray; oil grime everywhere a hand goes."
+ ],
+ "material": "sheet",
+ "hits": {"dent": 1.2, "crush": 0.4, "axial": 0.5, "bend": 0.0},
+ "depth": 0.7,
+ "wear": {"rust": 0.7, "patch": 0.3, "crevice": 0.8, "ground": 0.8, "pooling": 0.4, "crease": 0.8, "scrape": 0.8, "edge_wear": 1.0, "grime": 0.9}
+}

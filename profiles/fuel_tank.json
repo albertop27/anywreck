@@ -1,0 +1,12 @@
+{
+ "object": "950 litre diesel day tank: rectangular sheet-steel tank on an angle-iron stand with a drip tray",
+ "understanding": [
+  "The tank is welded sheet: flat sides dish in when struck and the corners hold. The stand is angle iron: legs bend and the whole thing leans rather than crumpling.",
+  "Hurt by vehicles and loads swung into its sides, and by collapse of a leg. A full tank resists; an empty one dents easily.",
+  "Rust at welds, the stand feet, the drip tray (always wet), round the filler and sight glass; diesel stains run down from the fittings."
+ ],
+ "material": "sheet",
+ "hits": {"dent": 1.3, "crush": 0.5, "axial": 0.2, "bend": 0.0},
+ "depth": 0.8,
+ "wear": {"rust": 1.0, "patch": 0.5, "crevice": 0.9, "ground": 1.0, "pooling": 0.8, "crease": 0.8, "scrape": 0.6, "edge_wear": 0.8, "grime": 0.8}
+}

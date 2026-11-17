@@ -1,0 +1,7 @@
+# name|input mesh|profile|seed      (inputs are only read; results go to out/<name>/)
+# make the two inputs first:
+#   blender -b --factory-startup --python examples/make_barrel.py -- out/oil_barrel/barrel_clean.glb
+#   blender -b --factory-startup --python examples/make_cylinder.py -- out/gas_cylinder/cylinder_clean.glb
+# add your own assets as more lines; the other files in profiles/ are starting points for common props
+oil_barrel|out/oil_barrel/barrel_clean.glb|profiles/oil_barrel.json|7
+gas_cylinder|out/gas_cylinder/cylinder_clean.glb|profiles/gas_cylinder.json|4
