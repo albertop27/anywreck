@@ -50,6 +50,10 @@ def parse():
     p.add_argument("--severity", type=float, default=0.5, help="0..1")
     p.add_argument("--seed", type=int, default=0)
     p.add_argument("--mode", default="auto", help="auto, or any of dent+crush+bend joined by +")
+    p.add_argument("--size-mode", choices=["relative", "real"], default="relative",
+                   help="relative: dents and rust patterns scale with the object (upstream). real: they keep their size in metres, "
+                        "as tuned on an object whose middle side is --ref-size, so a car gets more, smaller dents than its own scale suggests")
+    p.add_argument("--ref-size", type=float, default=0.35, help="metres; middle side of the object the damage was tuned on (20 l jerry can)")
     p.add_argument("--hits", help="JSON list of hits (file path or inline); overrides --mode")
     p.add_argument("--material", choices=sorted(MATERIALS), help="default: the profile's, else sheet")
     p.add_argument("--res", type=int, default=110, help="sheet resolution: voxels across the bbox diagonal")
@@ -361,8 +365,9 @@ def collider(ob, cd):
 
 # ---------------------------------------------------------------- planning
 
-def plan_hits(V, N, brace, sev, seed, mode, depth_scale, mix):
-    """Hits in sim space. depth is a length along dir."""
+def plan_hits(V, N, brace, sev, seed, mode, depth_scale, mix, size_ratio=1.0):
+    """Hits in sim space. depth is a length along dir. size_ratio > 1 (real-size mode, object bigger than the reference):
+    dents get smaller relative to the object and more numerous (by area, at most 4x). Crush and bend stay relative."""
     rng = np.random.default_rng(seed)
     lo, hi = V.min(0), V.max(0)
     ext = hi - lo
@@ -381,7 +386,7 @@ def plan_hits(V, N, brace, sev, seed, mode, depth_scale, mix):
 
     dents = []
     if "dent" in kinds and s > 0 and mix.get("dent", 1.0) > 0:
-        n = max(1, int(round((1 + 3 * s) * mix.get("dent", 1.0))) + int(rng.integers(0, 2)))
+        n = max(1, int(round((1 + 3 * s) * mix.get("dent", 1.0) * min(max(size_ratio, 1.0) ** 2, 4.0))) + int(rng.integers(0, 2)))
         free = np.flatnonzero(brace < 0.3)
         if len(free) == 0:
             free = np.arange(len(V))
@@ -389,8 +394,8 @@ def plan_hits(V, N, brace, sev, seed, mode, depth_scale, mix):
             i = int(rng.choice(free))
             d = unit(-N[i] + rng.normal(0, 0.22, 3))
             shape = "ball" if rng.random() < 0.7 else "bar"
-            r = rng.uniform(0.3, 1.1) * lat / 2 if shape == "ball" else rng.uniform(0.07, 0.16) * lat / 2
-            depth = rng.uniform(0.55, 1.0) * (0.05 + 0.27 * s) * lat * depth_scale
+            r = (rng.uniform(0.3, 1.1) * lat / 2 if shape == "ball" else rng.uniform(0.07, 0.16) * lat / 2) / size_ratio
+            depth = rng.uniform(0.55, 1.0) * (0.05 + 0.27 * s) * lat * depth_scale / size_ratio
             h = dict(type="dent", shape=shape, vi=i, point=V[i].tolist(), dir=d.tolist(), radius=float(r), depth=float(depth))
             if shape == "bar":
                 u, v = perp_frame(d)
@@ -656,7 +661,7 @@ def ridges(me, E):
     return smoothstep(0.03, 0.18, -cav)
 
 
-def wear_mask(me, E, cur, crease, contact, seed, amount, W, ridge0=None):
+def wear_mask(me, E, cur, crease, contact, seed, amount, W, ridge0=None, size_ratio=1.0):
     """Per-vertex (rust, grime, edge wear) from the damaged shape. W weights where rust starts, from the profile."""
     n = len(cur)
     N = vnormals(me)
@@ -681,12 +686,12 @@ def wear_mask(me, E, cur, crease, contact, seed, amount, W, ridge0=None):
     crevice = smoothstep(0.05, 0.2, cav)
     ridge = ridge0 if ridge0 is not None else smoothstep(0.03, 0.18, -cav)
     h = (cur[:, 2] - cur[:, 2].min()) / max(float(np.ptp(cur[:, 2])), 1e-9)
-    ground = 1 - smoothstep(0.0, 0.12, h)
+    ground = 1 - smoothstep(0.0, max(0.12 / size_ratio, 0.02), h)  # splash band: fixed metres in real-size mode
     pooling = smoothstep(0.6, 0.9, N[:, 2])  # upward faces hold water
     rng = np.random.default_rng(seed + 101)
     noise = np.zeros(n)
     for _ in range(7):
-        k = unit(rng.normal(size=3)) * rng.uniform(2.0, 8.0)
+        k = unit(rng.normal(size=3)) * rng.uniform(2.0, 8.0) * min(size_ratio, 10.0)  # rust patches keep their size in metres
         noise += np.sin(cur @ k + rng.uniform(0, 2 * math.pi))
     noise = 0.5 + noise / (2 * 2.2)
     patch = smoothstep(0.5, 0.85, noise)
@@ -740,6 +745,10 @@ def main():
     k = 2.0 / diag  # world -> sim scale; the simulation always sees an object 2 units across
     voxel_w = diag / a.res
     report["size_m"] = [round(float(x), 4) for x in hi - lo]
+    mid_m = float(np.sort(hi - lo)[1])
+    size_ratio = float(np.clip(mid_m / a.ref_size, 0.5, 20.0)) if a.size_mode == "real" else 1.0
+    report.update(size_mode=a.size_mode, size_ratio=round(size_ratio, 3))
+    log(f"size mode {a.size_mode}: middle side {mid_m:.3f} m, ratio {size_ratio:.2f}")
     report["tris_in"] = int(sum(len(f.verts) - 2 for f in bm.faces))
     sharp = sharp_samples(bm, voxel_w)
     rest_area_targets = float(sum(f.calc_area() for f in bm.faces))
@@ -850,7 +859,7 @@ def main():
                 if key in h:
                     h[key] = float(h[key]) * k
     else:
-        hits = plan_hits(rest, vnormals(sme), brace, a.severity, a.seed, a.mode, mat["depth"] * float(profile.get("depth", 1.0)), profile.get("hits", {}))
+        hits = plan_hits(rest, vnormals(sme), brace, a.severity, a.seed, a.mode, mat["depth"] * float(profile.get("depth", 1.0)), profile.get("hits", {}), size_ratio)
     sim = Sim(sim_ob, voxel_w * k, mat, a.pressure)
     sim.brace = brace
     for i, h in enumerate(hits):
@@ -884,7 +893,7 @@ def main():
     crease = smoothstep(4.0, 30.0, k1 - k0)
     mask = np.stack([sim.contact * smoothstep(0.5 * sim.voxel, 3.0 * sim.voxel, disp), crease, np.clip(disp / 0.25, 0, 1)], axis=1)
     wear_amount = a.severity if a.wear is None else a.wear
-    wear = wear_mask(sme, E, cur, crease, mask[:, 0], a.seed, wear_amount, profile.get("wear", {}), ridge0)
+    wear = wear_mask(sme, E, cur, crease, mask[:, 0], a.seed, wear_amount, profile.get("wear", {}), ridge0, size_ratio)
     mask = np.hstack([mask, wear])
     report["wear"] = dict(amount=round(float(wear_amount), 3), rust_cover=round(float((wear[:, 0] > 0.5).mean()), 3),
                           edge_wear_cover=round(float((wear[:, 2] > 0.5).mean()), 3))
